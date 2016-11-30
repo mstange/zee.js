@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Example use of zee.js</title>
+
+<body>
+
+<p>Open your console and play with the objects <code>Zee</code> and <code>ZeeAsync</code>.</p>
+
+<p>Examples:</p>
+
+<ul>
+  <li><code>Zee.decompress(Zee.compress(new Uint8Array([0, 2, 4, 6, 8, 9, 10])))</code></li>
+  <li><code>Zee.compress(someCleopatraProfile, 9).length / Zee.compress(someCleopatraProfile).length</code></li>
+  <li><code>var x = randomArrayOfLength(7500000); Zee.compress(x)</code></li>
+</ul>
+
+<script src="zee.js"></script>
+<script src="zee-client.js"></script>
+
+<script>
+
+function randomArrayOfLength(length) {
+  var a = new Uint8Array(length);
+  for (var i = 0; i < length; i++) {
+    a[i] = Math.floor(Math.random() * 256);
+  }
+  return a;
+}
+
+var someCleopatraProfile = '';
+
+function startLoadingSomeCleopatraProfile() {
+  fetch('https://profile-store.commondatastorage.googleapis.com/77eaa3a29b35cc93f57b2c252ef93cc4a9d5d050').then(response => response.text()).then(text => someCleopatraProfile = text);
+}
+
+startLoadingSomeCleopatraProfile();
+
+</script>

@@ -1,20 +1,43 @@
+var ZeeAsync = (function () {
+  var zeeWorker = new Worker('zee-worker.js');
+  var zeeCallbacks = [];
 
-var zeeWorker = new Worker('zee-worker.js');
+  zeeWorker.onmessage = function(msg) {
+    zeeCallbacks[msg.data.callbackID][msg.data.type](msg.data.data);
+    zeeCallbacks[msg.data.callbackID] = null;
+  };
 
-var zeeCallbacks = [];
+  return {
+    // Neuters data's buffer, if data is a typed array.
+    compress: function (data, compressionLevel) {
+      var arrayData = (typeof data === 'string') ? (new TextEncoder()).encode(data) : data;
+      return new Promise(function (resolve, reject) {
+        zeeWorker.postMessage({
+          request: 'compress',
+          data: arrayData,
+          compressionLevel: compressionLevel,
+          callbackID: zeeCallbacks.length,
+        }, [arrayData.buffer]);
+        zeeCallbacks.push({
+          success: resolve,
+          error: reject,
+        });
+      });
+    },
+    // Neuters data's buffer, if data is a typed array.
+    decompress: function (data) {
+      return new Promise(function (resolve, reject) {
+        zeeWorker.postMessage({
+          request: 'decompress',
+          data: data,
+          callbackID: zeeCallbacks.length,
+        }, [data.buffer]);
+        zeeCallbacks.push({
+          success: resolve,
+          error: reject,
+        });
+      });
+    },
+  }
 
-zeeWorker.onmessage = function(msg) {
-  zeeCallbacks[msg.data.callbackID](msg.data.data);
-  console.log("zee'd " + msg.data.filename + ' in ' + msg.data.time + ' ms, ' + msg.data.data.length + ' bytes');
-  zeeCallbacks[msg.data.callbackID] = null;
-};
-
-function requestZee(filename, data, callback) {
-  zeeWorker.postMessage({
-    filename: filename,
-    data: new Uint8Array(data), // do not send over the underlying ArrayBuffer
-    callbackID: zeeCallbacks.length
-  });
-  zeeCallbacks.push(callback);
-}
-
+})();

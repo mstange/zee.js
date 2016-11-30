@@ -16,8 +16,7 @@
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
 
-EMSCRIPTEN=~/Dev/emscripten
-EMCC=$(EMSCRIPTEN)/emcc -O2 -s EXPORTED_FUNCTIONS="['_gzopen', '_gzread', '_gzwrite', '_gzclose']" --pre-js pre.js --post-js post.js
+EMCC=emcc -O2 -s EXPORTED_FUNCTIONS="['_gzopen', '_gzread', '_gzwrite', '_gzclose']" -s ASM_JS=1 -s NO_DYNAMIC_EXECUTION=1 --memory-init-file 0 --pre-js pre.js --post-js post.js
 # -s INLINING_LIMIT=0
 CC=$(EMCC)
 # gcc
@@ -264,7 +263,7 @@ trees.lo: deflate.h zutil.h zlib.h zconf.h trees.h
 
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-# Emscripten additions. We build a portable (no typed arrays) and a fast (with typed arrays) build.
+# Emscripten additions.
 
 zee.js: libz.bc
 	$(EMCC) libz.bc empty_main.c -o libz.raw.js
@@ -273,7 +272,3 @@ zee.js: libz.bc
 	cat shell-post.js >> zee.js
 	cp zee.js zee-worker.js
 	cat worker.js >> zee-worker.js
-
-#libz.portable.js: libz.bc
-#	$(EMCC) -s USE_TYPED_ARRAYS=0 libz.bc -o libz.portable.js
-
